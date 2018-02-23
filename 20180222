@@ -1,0 +1,127 @@
+Scikit-Learn是用Python开发的机器学习库，其中包含大量机器学习算法、数据集，是数据挖掘方便的工具。
+
+Scikit-Learn的安装可使用pip工具，在安装前需要安装NumPy和SciPy，打开一个命令行中端并输入：
+
+$pip install -U scikit-learn
+
+基本操作：
+
+1.数据加载：
+
+对于csv文件，pandas库提供的pandas.read_csv能够快速的加载并根据提供的参数可进行数据的处理，生成DataFrame:
+
+import pandas as pd
+
+df=pd.read_csv('data.csv')
+
+http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html（pandas api）
+
+
+
+对于具有一定格式的文本文件或二进制文件，可使用NumPy进行数据加载：
+
+import numpy as np
+
+data_file='dataset.txt'
+
+X=np.load_txt(data_file)
+
+
+
+对于其他格式的文件，可以自由处理并加载到二维数组中，最终可生成DataFrame
+
+
+2.数据处理：
+
+在将数据加载到DataFrame中后可方便地对数据进行处理，也可以方便地进行特征选择与提取
+
+import pandas as pd
+
+df = pd.read_csv('data.csv')
+
+df.columns = ['id','name','time']#设置数据的特征名
+
+df.set_index('id')#设置索引
+
+df['age'] = 0 #添加新的属性age，并全部赋值为0
+
+for i,row in df.iterrows(): #逐行遍历dataframe
+
+#body of for
+
+http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html（DataFrame Api）
+
+
+
+3.一个分类的例子：
+
+用决策树预测获胜球队（来自《Learning Data Mining With Python》）
+
+采集数据：http://www.basketball-reference.com/leagues/NBA_2014_games.html提供了2013-2014的比赛胜负数据，不过已经无法一键导出csv了，需要一个月份一个月份地进行csv的复制
+
+样例数据如下：
+
+
+
+
+
+将所有数据保存到文本文件并另存为CSV文件以便后面的使用。
+
+接下来就是加载我们的CSV文件：data.csv
+
+import numpy as np
+
+import pandas as pd
+
+dataset = pd.read_csv('data.csv') #注意文件在自己电脑中的路径
+
+print dataset.ix[:5] #查看前5行数据
+
+
+数据处理：
+
+read_csv函数有一定的数据处理能力，所以我们修改一下刚刚的代码
+
+dataset = pd.read_csv('data.csv',parse_dates=["Date"],skiprows=[0,]) #将'Date'属性转换为了标准日期类型，省略了第一行
+
+dataset.columns = ["Date","Score_Type","Visitor Team","VisitorPts","Home Team","HomePts","OT?","Notes"]
+
+
+
+提取新的特征：
+
+dataset['HomeWin'] = dataset["VisitorPts"] < dataset["HomePts"]
+
+y_true = dataset['HomeWin'].values #提取出一列数据
+
+                #创建字典存储球队上次比赛的结果
+
+from collections import defaultdict
+
+won_last = defaultdict(int)
+
+for index,row in dataset.iterrows()：
+
+home_team = row["Home Team"]
+
+visitor_team = row["Visitor Team"]
+
+row["HomeLastWin"] = won_last[home_team]
+
+row["VisitorLastWin"] = won_last[visitor_team]
+
+dataset.ix[index] = row
+
+win_last[home_team] = row["HomeWin"]
+
+win_last[visitor_team] = not row["HomeWin"]
+
+使用决策树：
+
+from sklearn.trree import DecisionTreeClassifier
+
+clf = DecisionTreeClassifier(random_state=14)
+
+X_previouswins = dataset[["HomeLastWin","VisitorLastWin"]].values
+
+scores = cross_val_score(clf,X_previouswins ,y_true,scoring='accuracy')
